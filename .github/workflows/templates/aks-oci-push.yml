@@ -1,0 +1,74 @@
+parameters:
+  - name: dependsOn
+    type: object
+  - name: serviceConnection
+    type: string
+  - name: tenant
+    type: string
+  - name: region
+    type: string
+  - name: environmentCode
+    type: string
+
+jobs:
+  - job: PushAndSignArtifacts
+    displayName: 'Push and Sign OCI Artifacts'
+    condition: succeeded()
+    dependsOn: ${{ parameters.dependsOn }}
+    variables:
+      signingKeyName: 'oci-artifact-signing-key'
+    pool:
+      name: 'PLATFORM Build Agents'
+    steps:
+      - checkout: AksPlatform
+        clean: true
+      - download: current
+        artifact: 'oci-artifacts'
+      - template: "../steps/install-oras-cosign.yml"
+        parameters:
+          orasVersion: '1.3.0'
+          cosignVersion: '2.6.1'
+      - task: AzureCLI@2
+        displayName: 'Generate Signing Key (if not exists)'
+        name: GenerateSigningKeyStep
+        inputs:
+          azureSubscription: ${{ parameters.serviceConnection }}
+          visibleAzLogin: false
+          scriptType: 'pscore'
+          scriptLocation: 'scriptPath'
+          scriptPath: '$(System.DefaultWorkingDirectory)/.azuredevops/scripts/gitops/generate-signing-key.ps1'
+          arguments: '-KeyName $(signingKeyName) -sharedConfig ''$(sharedConfig)'' -region ${{ parameters.region }}'
+      - task: AzureCLI@2
+        displayName: 'Push and Sign OCI Artifacts'
+        name: PushAndSignArtifacts
+        inputs:
+          azureSubscription: ${{ parameters.serviceConnection }}
+          scriptType: 'pscore'
+          scriptLocation: 'scriptPath'
+          scriptPath: '$(System.DefaultWorkingDirectory)/.azuredevops/scripts/gitops/push-and-sign-oci-artifact.ps1'
+          arguments: '-SigningKeyName $(signingKeyName) -sharedConfig ''$(sharedConfig)'' -Region ${{ parameters.region }} -ArtifactFolder "$(Pipeline.Workspace)/oci-artifacts" -RepositoryFolder "manifests" -AcrName $(pfmAcrName) -BuildNumber $(Build.BuildId)'
+      - task: PowerShell@2
+        displayName: 'Prepare Push and Sign Results for Publishing'
+        env:
+          signingResults: $(PushAndSignArtifacts.ProcessedArtifacts)
+        inputs:
+          targetType: 'inline'
+          script: |
+            $destDir = "$(Build.ArtifactStagingDirectory)/push-and-sign-results"
+            if (-Not (Test-Path -Path $destDir)) {
+                New-Item -ItemType Directory -Path $destDir | Out-Null
+            }
+
+            # Retrieve the JSON output from the previous step
+            $summaryJson = "$env:signingResults"
+
+            Write-Host "Retrieved JSON from pipeline variable:"
+
+            $summary = $summaryJson | ConvertFrom-Json
+            $summary | ConvertTo-Json -Depth 5 | Out-File -FilePath (Join-Path $destDir 'results.json') -Encoding UTF8
+            Write-Host "Successfully created summary file with $($summary.Count) items"
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish Push and Sign Results'
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)/push-and-sign-results'
+          artifact: 'push-and-sign-results-${{ parameters.region }}'
