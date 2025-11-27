@@ -19,47 +19,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Install Flux CLI
+        uses: fluxcd/flux2/action@main
+        with:
+          version: 'latest'
       - name: Build OCI Artifacts
         id: build-oci-artifacts
         shell: pwsh
         run: |
           ./scripts/build-oci-artifacts.ps1 -FoldersToSync "./clusters" -DestinationFolder "${{ runner.temp }}/oci-artifacts"
-
-
-#############################
-#parameters:  
-#  - name: tenant
-#    type: string
-#  - name: stageName
-#    type: string
-#  - name: stageDisplayName
-#    type: string
-#    default: ''
-#  - name: foldersToSync
-#    type: string
-#
-#stages:
-#  - stage: ${{ parameters.stageName }}
-#    ${{ if ne(parameters.stageDisplayName, '') }}:
-#      displayName: '${{ upper(parameters.tenant) }} - ${{ parameters.stageDisplayName }}'
-#    jobs:
-#      - job: BuildArtifacts
-#        displayName: 'Build OCI Artifacts'
-#        pool:
-#          name: '${{ upper(parameters.tenant) }} Linux Build Agents'
-#        steps:
-#          - checkout: AksPlatform
-#            clean: true
-#          - task: PowerShell@2
-#            name: 'createOCIArtifacts'
-#            inputs:
-#              targetType: 'filePath'
-#              filePath: '$(System.DefaultWorkingDirectory)/.azuredevops/scripts/gitops/create-oci-artifacts.ps1'
-#              pwsh: true
-#              #workingDirectory: '$(System.DefaultWorkingDirectory)'
-#              arguments: >
-#                -foldersToSync "${{ parameters.foldersToSync }}"
-#                -destinationFolder "$(Build.ArtifactStagingDirectory)/oci-artifacts"
-#          - publish: '$(Build.ArtifactStagingDirectory)/oci-artifacts'
-#            artifact: 'oci-artifacts'
-#
+      - name: Upload OCI Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: oci-artifacts
+          path: ${{ runner.temp }}/oci-artifacts
