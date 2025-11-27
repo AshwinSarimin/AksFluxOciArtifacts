@@ -36,38 +36,39 @@ jobs:
 
 
 #############################
-parameters:  
-  - name: tenant
-    type: string
-  - name: stageName
-    type: string
-  - name: stageDisplayName
-    type: string
-    default: ''
-  - name: foldersToSync
-    type: string
-
-stages:
-  - stage: ${{ parameters.stageName }}
-    ${{ if ne(parameters.stageDisplayName, '') }}:
-      displayName: '${{ upper(parameters.tenant) }} - ${{ parameters.stageDisplayName }}'
-    jobs:
-      - job: BuildArtifacts
-        displayName: 'Build OCI Artifacts'
-        pool:
-          name: '${{ upper(parameters.tenant) }} Linux Build Agents'
-        steps:
-          - checkout: AksPlatform
-            clean: true
-          - task: PowerShell@2
-            name: 'createOCIArtifacts'
-            inputs:
-              targetType: 'filePath'
-              filePath: '$(System.DefaultWorkingDirectory)/.azuredevops/scripts/gitops/create-oci-artifacts.ps1'
-              pwsh: true
-              #workingDirectory: '$(System.DefaultWorkingDirectory)'
-              arguments: >
-                -foldersToSync "${{ parameters.foldersToSync }}"
-                -destinationFolder "$(Build.ArtifactStagingDirectory)/oci-artifacts"
-          - publish: '$(Build.ArtifactStagingDirectory)/oci-artifacts'
-            artifact: 'oci-artifacts'
+#parameters:  
+#  - name: tenant
+#    type: string
+#  - name: stageName
+#    type: string
+#  - name: stageDisplayName
+#    type: string
+#    default: ''
+#  - name: foldersToSync
+#    type: string
+#
+#stages:
+#  - stage: ${{ parameters.stageName }}
+#    ${{ if ne(parameters.stageDisplayName, '') }}:
+#      displayName: '${{ upper(parameters.tenant) }} - ${{ parameters.stageDisplayName }}'
+#    jobs:
+#      - job: BuildArtifacts
+#        displayName: 'Build OCI Artifacts'
+#        pool:
+#          name: '${{ upper(parameters.tenant) }} Linux Build Agents'
+#        steps:
+#          - checkout: AksPlatform
+#            clean: true
+#          - task: PowerShell@2
+#            name: 'createOCIArtifacts'
+#            inputs:
+#              targetType: 'filePath'
+#              filePath: '$(System.DefaultWorkingDirectory)/.azuredevops/scripts/gitops/create-oci-artifacts.ps1'
+#              pwsh: true
+#              #workingDirectory: '$(System.DefaultWorkingDirectory)'
+#              arguments: >
+#                -foldersToSync "${{ parameters.foldersToSync }}"
+#                -destinationFolder "$(Build.ArtifactStagingDirectory)/oci-artifacts"
+#          - publish: '$(Build.ArtifactStagingDirectory)/oci-artifacts'
+#            artifact: 'oci-artifacts'
+#
