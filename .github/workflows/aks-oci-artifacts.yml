@@ -1,0 +1,44 @@
+name: AKS OCI Artifacts Pipeline
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  BuildOCIArtifacts:
+    name: Build OCI Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PowerShell
+        shell: pwsh
+        run: |
+          ./scripts/build-oci-artifacts.ps1
+
+  PushAndSignOCIArtifacts:
+    name: Push and Sign OCI Artifacts
+    runs-on: ubuntu-latest
+    needs: BuildOCIArtifacts
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PowerShell
+        shell: pwsh
+        run: |
+          ./scripts/push-sign-oci-artifacts.ps1
+
+  PromoteOCIArtifacts:
+    name: Promote OCI Artifacts
+    runs-on: ubuntu-latest
+    needs: PushAndSignOCIArtifacts
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PowerShell
+        shell: pwsh
+        run: |
+          ./scripts/promote-oci-artifacts.ps1
