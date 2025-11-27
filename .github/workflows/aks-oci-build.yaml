@@ -23,16 +23,7 @@ jobs:
         id: build-oci-artifacts
         shell: pwsh
         run: |
-          ./scripts/build-oci-artifacts.ps1 -RegistryName "${{ vars.REGISTRY_NAME }}" -ImageTag "${{ github.sha }}" -Environment "production"
-
-
-
-
-
-
-
-
-
+          ./scripts/build-oci-artifacts.ps1 -FoldersToSync "./clusters" -DestinationFolder "${{ runner.temp }}/oci-artifacts"
 
 
 #############################

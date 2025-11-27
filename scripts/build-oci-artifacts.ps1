@@ -1,31 +1,3 @@
-<#
-.SYNOPSIS
-    Builds Flux OCI artifacts from specified folders and saves them as tgz files.
-
-.DESCRIPTION
-    This script builds Flux OCI artifacts from one or more source folders using the 'flux build artifact' command.
-    Each folder is processed individually and the resulting artifact is saved to the destination folder as a .tgz file.
-
-    The script requires the following tools to be available in PATH:
-    - az (Azure CLI)
-    - flux (Flux CLI)
-    - git
-
-.PARAMETER FoldersToSync
-    Comma-separated list of folder paths to build as OCI artifacts.
-    Example: "./folder1,./folder2,folder3"
-
-.PARAMETER DestinationFolder
-    The destination folder where the built .tgz artifacts will be saved.
-    If the folder doesn't exist, it will be created automatically.
-
-.EXAMPLE
-    .\create-oci-artifacts.ps1 -FoldersToSync "./charts/app1,./charts/app2" -DestinationFolder "./artifacts"
-
-.NOTES
-    Author: AKS Platform Team
-    Version: 1.0
-#>
 param(
   [Parameter(Mandatory = $true)]
   [string] $FoldersToSync,
