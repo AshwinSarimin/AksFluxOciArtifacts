@@ -1,0 +1,124 @@
+name: AKS OCI Artifacts Pipeline
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  BuildOCIArtifacts:
+    uses: ./.github/workflows/aks-oci-build.yaml
+    #with:
+    #  githubAppID: ${{ vars.IODENBOSCHDEVOPSBICEP }}
+    #secrets: inherit
+
+#  PushAndSignOCIArtifacts:
+#    name: Push and Sign OCI Artifacts
+#    runs-on: ubuntu-latest
+#    needs: BuildOCIArtifacts
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Setup PowerShell
+#        shell: pwsh
+#        run: |
+#          ./scripts/push-sign-oci-artifacts.ps1
+#
+#  PromoteOCIArtifacts:
+#    name: Promote OCI Artifacts
+#    runs-on: ubuntu-latest
+#    needs: PushAndSignOCIArtifacts
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Setup PowerShell
+#        shell: pwsh
+#        run: |
+#          ./scripts/promote-oci-artifacts.ps1
+
+
+
+
+
+
+#parameters:
+#  - name: tenant
+#    type: string
+#    values:
+#      - 'vec'
+#      - 'zom'
+#  - name: regions
+#    type: object
+#    default:
+#      vec:
+#        - 'neu'
+#        - 'weu'
+#      zom:
+#        - 'weu'
+#
+#trigger: none
+#
+#name: 'Build AKS cluster artifacts - $(Build.BuildId)'
+#
+#variables:
+#  - name: 'azureSubscription'
+#    value: 'AZP-${{ upper(parameters.tenant) }}-SHR-CD'
+#
+#stages:
+#  - stage: BuildOCIArtifacts
+#    displayName: 'Build OCI Artifacts'
+#    jobs:
+#      - job: BuildArtifacts
+#        displayName: 'Build OCI Artifacts'
+#        pool:
+#          name: '${{ upper(parameters.tenant) }} Linux Build Agents'
+#        steps:
+#          - checkout: self
+#            clean: true
+#
+#          - task: AzureCLI@2
+#            displayName: 'Create OCI Artifacts'
+#            inputs:
+#              azureSubscription: '$(azureSubscription)'
+#              scriptType: 'pscore'
+#              scriptLocation: 'scriptPath'
+#              scriptPath: '$(System.DefaultWorkingDirectory)/.azuredevops/scripts/create-oci-artifacts.ps1'
+#              arguments: >
+#                -foldersToSync "./infrastructure, ./clusters"
+#                -destinationFolder "$(Build.ArtifactStagingDirectory)/oci-artifacts"
+#
+#          - publish: '$(Build.ArtifactStagingDirectory)/oci-artifacts'
+#            artifact: 'oci-artifacts'
+#
+#  - ${{ each region in parameters.regions[parameters.tenant] }}:
+#    - stage: PushAndSignOCIArtifacts_${{ upper(region) }}
+#      displayName: 'Push and Sign OCI Artifacts - ${{ upper(region) }}'
+#      dependsOn: BuildOCIArtifacts
+#      jobs:
+#        - template: "../templates/jobs/aks-oci-artifacts-push.yml"
+#          parameters:
+#            azureSubscription: '$(azureSubscription)'
+#            tenant: '${{ parameters.tenant }}'
+#            region: '${{ region }}'
+#
+#    - ${{ each environment in split('dev,tst,prd', ',') }}:
+#      - stage: PromoteOCIArtifacts_${{ upper(region) }}_${{ upper(environment) }}
+#        displayName: 'Promote to ${{ upper(environment) }} - ${{ upper(region) }}'
+#        ${{ if or(eq(environment, 'tst'), eq(environment, 'prd')) }}:
+#          condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+#        dependsOn:
+#          - ${{ if eq(environment, 'dev') }}:
+#            - PushAndSignOCIArtifacts_${{ upper(region) }}
+#          - ${{ if eq(environment, 'tst') }}:
+#            - PromoteOCIArtifacts_${{ upper(region) }}_DEV
+#          - ${{ if eq(environment, 'prd') }}:
+#            - PromoteOCIArtifacts_${{ upper(region) }}_TST
+#        jobs:
+#          - template: "../templates/jobs/aks-oci-artifacts-promote.yml"
+#            parameters:
+#              azureSubscription: '$(azureSubscription)'
+#              tenant: '${{ parameters.tenant }}'
+#              region: '${{ region }}'
+#              environment: '${{ environment }}'
+
