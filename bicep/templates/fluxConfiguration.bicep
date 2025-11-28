@@ -2,6 +2,12 @@ param fluxConfigName string
 param clusterName string
 param namespace string
 param scope string
+@allowed([
+  'AzureBlob'
+  'OCIRepository'
+])
+param source string
+param azureBlob object = {}
 param ociRepository object = {}
 param kustomizations object = {}
 
@@ -18,7 +24,15 @@ resource fluxAppConfig 'Microsoft.KubernetesConfiguration/fluxConfigurations@202
       namespace: namespace
       kustomizations: kustomizations
     },
-    {
+    source == 'AzureBlob' ? {
+      sourceKind: 'AzureBlob'
+      azureBlob: {
+        url: azureBlob.blobUrl
+        containerName: azureBlob.containerName
+        managedIdentity: azureBlob.managedIdentity
+        syncIntervalInSeconds: (contains(azureBlob, 'syncIntervalInSeconds')) ? azureBlob.syncIntervalInSeconds : 120
+      }
+    } : source == 'OCIRepository' ? {
       sourceKind: 'OCIRepository'
       ociRepository: {
         url: ociRepository.url
@@ -34,6 +48,6 @@ resource fluxAppConfig 'Microsoft.KubernetesConfiguration/fluxConfigurations@202
           }
         }
       }
-    }
+    } : {}
   )
 }

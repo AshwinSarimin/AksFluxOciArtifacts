@@ -13,21 +13,23 @@ param fluxIdentityName string
 param fluxConfigScope string = 'cluster'
 param ociRepositoryUrl string
 param cosignPublicKey string
+param useOciRepository bool = true
+param configSubstitution bool = false
+param kustomizationType string = 'config'
+//Storage account for AzureBlob source
+param storageAccount object = {}
+param storageAccountContainerName string = ''
+param kubeletManagedIdentity object = {}
 
 // =========== //
 // Variables   //
 // =========== //
 
-//var kubeletManagedIdentityName = '${tenant}-${region}-${environmentLetter}-mi-${instanceName}-kubelet'
-//var fluxManagedIdentityName = '${tenant}-${region}-${environmentLetter}-mi-${instanceName}-flux'
-//var istioManagedIdentityName = '${tenant}-${region}-${environmentLetter}-mi-${instanceName}-istio'
-
 module fluxExtension '../templates/fluxExtension.bicep' = {
   name: 'fluxExtension-${clusterName}'
   params: {
     clusterName: clusterName
-    managedIdentityName: fluxManagedIdentityName
-    managedIdentityResourceGroupName: managedIdentitiesResourceGroupName
+    managedIdentityName: fluxIdentityName
     fluxExtensionNamespace: fluxExtensionNamespace
   }
 }
@@ -39,19 +41,57 @@ module fluxConfiguration '../templates/fluxConfiguration.bicep' = {
     clusterName: clusterName
     namespace: fluxConfigNamespace
     scope: fluxConfigScope
-    ociRepository: {
+    source: useOciRepository ? 'OCIRepository' : 'AzureBlob'
+    azureBlob: !useOciRepository ? {
+      blobUrl: storageAccount.properties.primaryEndpoints.blob
+      containerName: storageAccountContainerName
+      managedIdentity: {
+        clientId: kubeletManagedIdentity.properties.clientId
+      }
+    } : {}
+    ociRepository: useOciRepository ? {
       url: ociRepositoryUrl
       tag: environmentCode
       useWorkloadIdentity: true
       verifyProvider: 'cosign'
       cosignPublicKey: cosignPublicKey
-    }
-    kustomizations: {
-      path: kustomizationPath
-      syncIntervalInSeconds: 120
-      prune: true
-      dependsOn: kustomizationDependencies
-    }
+    } : {}
+    kustomizations: configSubstitution
+      ? {
+          'config-substitutions': {
+            path: '${kustomizationPath}/config-substitutions'
+            syncIntervalInSeconds: 120
+            prune: true
+          }
+          '${kustomizationType}': {
+            dependsOn: union(
+              [
+                'config-substitutions'
+              ],
+              kustomizationDependencies
+            )
+            path: kustomizationPath
+            syncIntervalInSeconds: 120
+            prune: true
+            postBuild: {
+              substituteFrom: [
+                {
+                  kind: 'ConfigMap'
+                  name: 'config-substitution-values'
+                  optional: true
+                }
+              ]
+            }
+          }
+        }
+      : {
+          '${kustomizationType}': {
+            path: kustomizationPath
+            syncIntervalInSeconds: 120
+            prune: true
+            dependsOn: kustomizationDependencies
+          }
+        }
   }
   dependsOn: [
     fluxExtension

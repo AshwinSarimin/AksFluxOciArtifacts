@@ -1,12 +1,11 @@
 param clusterName string
 param managedIdentityName string
-param managedIdentityResourceGroupName string
 param fluxExtensionNamespace string
 param fluxControllersLogLevel string = 'error'
 
 resource fluxManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
   name: managedIdentityName
-  scope: resourceGroup(managedIdentityResourceGroupName)
+  scope: resourceGroup()
 }
 
 resource cluster 'Microsoft.ContainerService/managedClusters@2025-05-01' existing = {

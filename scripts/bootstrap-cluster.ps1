@@ -1,17 +1,25 @@
 $resourceGroup = "ashwin-aks-rg"
 $aksName = "ashwin-aks"
 $acrName = "ashwinaks"
-$acrSku = "Basic"
 $keyVaultName = "ashwin-aks-kv"
 $fluxIdentityName = "ashwin-aks-flux"
-$location = "westeurope"
-
 $environmentCode = "dev"
+$signingKeyName = "oci-artifact-signing-key"
 
+# Get Cosign public key from Key Vault
+az keyvault key download `
+  --vault-name $keyVaultName `
+  --name $signingKeyName --file cosign-public-key.pem --encoding PEM
+
+# Read the public key content and convert to base64
+$publicKeyContent = Get-Content -Path "cosign-public-key.pem" -Raw
+$cosignPublicKey = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($publicKeyContent))
+
+# Bootstrap cluster
 az deployment group create `
   --name main-BootstrapCluster `
   --resource-group "$resourceGroup" `
-  --template-file ../bicep/main.bicep `
+  --template-file ../bicep/bootstrapCluster/main.bicep `
   --verbose `
   --parameters `
       clusterName="$aksName" `
@@ -22,4 +30,4 @@ az deployment group create `
       kustomizationPath="./clusters/teknologi/$environmentCode" `
       fluxIdentityName="$fluxIdentityName" `
       ociRepositoryUrl="$($acrName).azurecr.io/manifests/clusters" `
-      cosignPublicKey="$($env:COSIGN_PUBLIC_KEY)"
+      cosignPublicKey="$cosignPublicKey"
