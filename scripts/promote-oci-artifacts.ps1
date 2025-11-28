@@ -1,36 +1,8 @@
-<#
-.SYNOPSIS
-    Promotes OCI artifacts in Azure Container Registry across environments.
-
-.DESCRIPTION
-    This script promotes existing OCI artifacts (container images, Helm charts, etc.)
-    from one environment to another by adding environment-specific tags.
-    It preserves the original artifact digest to ensure consistency.
-
-.PARAMETER ResultSummaryFilePath
-    The file path to the JSON result summary containing artifact details.
-
-.PARAMETER RegistryName
-    The name of the Azure Container Registry (without .azurecr.io)
-
-.PARAMETER Environment
-    The environment tag (e.g., "dev")
-
-.EXAMPLE
-    .\promote-oci-artifacts.ps1 -ResultSummaryFilePath "C:\artifacts\result-summary.json" -RegistryName "myacr" -Environment "dev"
-#>
-
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)]
-    [string]$ResultSummaryFilePath,
-
-    [Parameter(Mandatory = $true)]
-    [string]$RegistryName,
-
-    [Parameter(Mandatory = $true)]
-    [ValidateSet("dev", "tst", "prd")]
-    [string]$Environment
+  [Parameter(Mandatory = $true)][string]$resultsSummaryFilePath,
+  [Parameter(Mandatory = $true)][string]$acrName,
+  [Parameter(Mandatory = $true)][string]$environment
 )
 
 Set-StrictMode -Version Latest
@@ -77,24 +49,24 @@ function Add-ArtifactTag {
 }
 
 # Construct registry URL
-$registryUrl = "$RegistryName.azurecr.io"
+$registryUrl = "$acrName.azurecr.io"
 
 # Read result summary
-if (-Not (Test-Path -Path $ResultSummaryFilePath)) {
-    Write-Error "$CROSS Result summary file not found: $ResultSummaryFilePath"
+if (-Not (Test-Path -Path $resultsSummaryFilePath)) {
+    Write-Error "$CROSS Result summary file not found: $resultsSummaryFilePath"
     exit 1
 }
 
-$resultSummary = Get-Content -Path $ResultSummaryFilePath | ConvertFrom-Json
+$resultSummary = Get-Content -Path $resultsSummaryFilePath | ConvertFrom-Json
 
 
 Write-Host "=== OCI Artifact Promotion ==="
 Write-Host "Registry: $registryUrl"
-Write-Host "Target Environment: $($Environment)"
+Write-Host "Target Environment: $($environment)"
 Write-Host "==============================`n"
 
-Write-Host "$INFO Logging into ACR '$RegistryName'..."
-az acr login --name $RegistryName | Out-Null
+Write-Host "$INFO Logging into ACR '$acrName'..."
+az acr login --name $acrName | Out-Null
 
 # Iterate over artifacts in the result summary
 $successCount = 0
@@ -124,11 +96,11 @@ foreach ($artifact in $resultSummary) {
   Write-Host "$CHECK Artifact found"
 
   # Add environment tag
-  if (Add-ArtifactTag -Registry $RegistryName -SourceReference $fullReference -Repo $repository -Tag $Environment) {
-    Write-Host "$CHECK Successfully promoted to environment: $Environment"
+  if (Add-ArtifactTag -Registry $acrName -SourceReference $fullReference -Repo $repository -Tag $environment) {
+    Write-Host "$CHECK Successfully promoted to environment: $environment"
     $successCount++
   } else {
-    Write-Warning "$CROSS Failed to promote to environment: $Environment"
+    Write-Warning "$CROSS Failed to promote to environment: $environment"
     $failCount++
     continue
   }

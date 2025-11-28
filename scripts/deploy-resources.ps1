@@ -58,10 +58,12 @@ az identity federated-credential create `
 #>
 
 
+
+
+<######################################>
+<##THIS WILL BE DONE WITH BICEP
 #but it would install the Kubernetes extension for Azure CLI, which is required for managing Kubernetes extensions on AKS clusters.
 #az extension add --name k8s-extension
-
-
 #This will create the flux extension in the default namespace "kube-system"
 #Installs the Flux GitOps extension on your AKS cluster
 
@@ -73,10 +75,10 @@ az k8s-extension create `
   --extension-type "microsoft.flux" `
   --cluster-type managedClusters `
   --config-protected-settings "workloadIdentity.enable=true" "workloadIdentity.azureClientId=$workloadIdentityClientId"
+<######################################>
 
 
 
-  
 <#
 az deployment group create `
   --name main-fluxConfiguration `

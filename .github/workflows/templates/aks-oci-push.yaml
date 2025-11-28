@@ -12,6 +12,8 @@ on:
       acrName:
         required: true
         type: string
+    outputs:
+      processed-artifacts: ${{ steps.push-sign.outputs.ProcessedArtifacts }}
 
 jobs:
   push-and-sign-artifacts:
@@ -26,7 +28,7 @@ jobs:
           name: oci-artifacts
           path: ${{ runner.temp }}/oci-artifacts
       - name: Install tools
-        uses: ./.github/actions/templates/install-push-tools
+        uses: ./.github/actions/templates/install-signin-tools
         with: 
           orasVersion: '1.3.0'
           cosignVersion: '2.6.1'
@@ -43,6 +45,7 @@ jobs:
           inlineScript: ./scripts/generate-signing-key.ps1 -keyName ${{ inputs.signingKeyName }} -keyVaultName ${{ inputs.keyVaultName }}
           azPSVersion: "latest"
       - name: Push and Sign OCI Artifacts
+        id: push-sign
         uses: azure/powershell@v2
         with:
           inlineScript: ./scripts/push-sign-oci-artifacts.ps1 -signingKeyName ${{ inputs.signingKeyName }} -keyVaultName ${{ inputs.keyVaultName }} -artifactFolder "${{ runner.temp }}/oci-artifacts" -repositoryFolder "manifests" -acrName ${{ inputs.acrName }} -buildNumber ${{ github.run_number }}

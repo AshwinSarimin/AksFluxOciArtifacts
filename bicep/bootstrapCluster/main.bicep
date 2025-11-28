@@ -27,7 +27,7 @@ param cosignPublicKey string
 //var fluxManagedIdentityName = '${tenant}-${region}-${environmentLetter}-mi-${instanceName}-flux'
 //var istioManagedIdentityName = '${tenant}-${region}-${environmentLetter}-mi-${instanceName}-istio'
 
-module fluxExtension './templates/fluxExtension.bicep' = {
+module fluxExtension '../templates/fluxExtension.bicep' = {
   name: 'fluxExtension-${clusterName}'
   params: {
     clusterName: clusterName
@@ -37,7 +37,7 @@ module fluxExtension './templates/fluxExtension.bicep' = {
   }
 }
 
-module fluxConfiguration './templates/fluxConfiguration.bicep' = {
+module fluxConfiguration '../templates/fluxConfiguration.bicep' = {
   name: 'fluxConfiguration-${fluxConfigName}'
   params: {
     fluxConfigName: fluxConfigName

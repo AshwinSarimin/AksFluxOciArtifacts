@@ -189,5 +189,5 @@ if ($failed.Count -gt 0) {
 Write-Host "`n$CHECK All artifacts pushed and signed successfully for buildnumber: $buildNumber" -ForegroundColor Green
 
 # Output summary for pipeline consumption
-#$summaryJson = $processed | ConvertTo-Json -Depth 10 -Compress
-#Write-Host "##vso[task.setvariable variable=ProcessedArtifacts;isOutput=true]$summaryJson"
+$summaryJson = $processed | ConvertTo-Json -Depth 10 -Compress
+"ProcessedArtifacts=$summaryJson" | Add-Content -Path $env:GITHUB_OUTPUT

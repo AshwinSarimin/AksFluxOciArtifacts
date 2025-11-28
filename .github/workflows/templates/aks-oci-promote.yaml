@@ -1,0 +1,33 @@
+name: Promote OCI Artifacts
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+jobs:
+  promote-artifacts:
+  runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install tools
+        uses: ./.github/actions/templates/install-signin-tools
+        with: 
+          orasVersion: '1.3.0'
+          cosignVersion: '2.6.1'
+      - name: Azure Login
+        uses: Azure/login@v1
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+      - name: Promote OCI Artifacts
+        uses: azure/powershell@v2
+        with:
+          inlineScript: ./scripts/promote-oci-artifacts.ps1 -resultsSummaryFilePath ${{ needs.push-sign-oci-artifacts.outputs.processed-artifacts }} -acrName ${{ inputs.acrName }} -environment ${{ inputs.environment }}
+          azPSVersion: "latest"

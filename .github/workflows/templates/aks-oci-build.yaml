@@ -1,8 +1,5 @@
 name: Build OCI Artifacts
 
-env:
-  variableFile: ./.github/variables/dev.yaml
-
 on:
   workflow_call:
     #inputs:
