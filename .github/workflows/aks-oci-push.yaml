@@ -45,5 +45,5 @@ jobs:
       - name: Push and Sign OCI Artifacts
         uses: azure/powershell@v2
         with:
-          inlineScript: ./scripts/push-sign-oci-artifacts.ps1 -signingKeyName ${{ inputs.signingKeyName }} -artifactFolder "${{ runner.temp }}/oci-artifacts" -repositoryFolder "manifests" -acrName ${{ inputs.acrName }} -buildNumber ${{ github.run_number }}
+          inlineScript: ./scripts/push-sign-oci-artifacts.ps1 -signingKeyName ${{ inputs.signingKeyName }} -keyVaultName ${{ inputs.keyVaultName }} -artifactFolder "${{ runner.temp }}/oci-artifacts" -repositoryFolder "manifests" -acrName ${{ inputs.acrName }} -buildNumber ${{ github.run_number }}
           azPSVersion: "latest"

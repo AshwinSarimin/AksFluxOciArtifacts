@@ -27,7 +27,15 @@ param cosignPublicKey string
 //var fluxManagedIdentityName = '${tenant}-${region}-${environmentLetter}-mi-${instanceName}-flux'
 //var istioManagedIdentityName = '${tenant}-${region}-${environmentLetter}-mi-${instanceName}-istio'
 
-
+module fluxExtension './templates/fluxExtension.bicep' = {
+  name: 'fluxExtension-${clusterName}'
+  params: {
+    clusterName: clusterName
+    managedIdentityName: fluxManagedIdentityName
+    managedIdentityResourceGroupName: managedIdentitiesResourceGroupName
+    fluxExtensionNamespace: fluxExtensionNamespace
+  }
+}
 
 module fluxConfiguration './templates/fluxConfiguration.bicep' = {
   name: 'fluxConfiguration-${fluxConfigName}'
@@ -52,4 +60,7 @@ module fluxConfiguration './templates/fluxConfiguration.bicep' = {
       }
     }
   }
+  dependsOn: [
+    fluxExtension
+  ]
 }

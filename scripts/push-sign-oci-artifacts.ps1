@@ -1,5 +1,6 @@
 param(
   [Parameter(Mandatory = $true)][string] $signingKeyName,
+  [Parameter(Mandatory = $true)][string] $keyVaultName,
   [Parameter(Mandatory = $true)][string] $artifactFolder, # Path where pipeline artifacts (.tgz) are downloaded
   [Parameter(Mandatory = $true)][string] $repositoryFolder,
   [Parameter(Mandatory = $true)][string] $acrName,
@@ -24,7 +25,7 @@ function Require-Command {
 
 function Get-KeyIdentifier {
   # Get latest version
-  return "azurekms://$KeyVaultName.vault.azure.net/$signingKeyName"
+  return "azurekms://$keyVaultName.vault.azure.net/$signingKeyName"
 }
 
 Require-Command -Name az
