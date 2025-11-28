@@ -32,8 +32,11 @@ jobs:
           subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
           enable-AzPSSession: true
       - name: Generate Signing Key (if not exists)
-        uses: azure/powershell@v1
-        inlineScript: ./scripts/generate-signing-key.ps1 -keyName $(signingKeyName) -keyVaultName ${{ env.keyVaultName }}
+        uses: azure/powershell@v2
+        with:
+          inlineScript: ./scripts/generate-signing-key.ps1 -keyName $(signingKeyName) -keyVaultName ${{ env.keyVaultName }}
+          azPSVersion: "latest"
+        
         
 
 
