@@ -6,6 +6,9 @@ on:
       keyVaultName:
         required: true
         type: string
+      signingKeyName:
+        required: true
+        type: string
 
 jobs:
   push-and-sign-artifacts:
@@ -34,7 +37,7 @@ jobs:
       - name: Generate Signing Key (if not exists)
         uses: azure/powershell@v2
         with:
-          inlineScript: ./scripts/generate-signing-key.ps1 -keyName $(signingKeyName) -keyVaultName ${{ inputs.keyVaultName }}
+          inlineScript: ./scripts/generate-signing-key.ps1 -keyName ${{ inputs.signingKeyName }} -keyVaultName ${{ inputs.keyVaultName }}
           azPSVersion: "latest"
         
         

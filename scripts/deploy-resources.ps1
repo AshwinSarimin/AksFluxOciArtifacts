@@ -74,6 +74,9 @@ az k8s-extension create `
   --cluster-type managedClusters `
   --config-protected-settings "workloadIdentity.enable=true" "workloadIdentity.azureClientId=$workloadIdentityClientId"
 
+
+
+  
 <#
 az deployment group create `
   --name main-fluxConfiguration `

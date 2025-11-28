@@ -20,6 +20,7 @@ jobs:
     uses: ./.github/workflows/aks-oci-push.yaml
     with:
       keyVaultName: "ashwin-aks-kv"
+      signingKeyName: oci-artifact-signing-key
     secrets: inherit
 
 
