@@ -13,12 +13,14 @@ on:
         required: true
         type: string
     outputs:
-      processed-artifacts: ${{ steps.push-sign.outputs.ProcessedArtifacts }}
+      value: ${{ jobs.push-and-sign-artifacts.outputs.processed-artifacts }}
 
 jobs:
   push-and-sign-artifacts:
     runs-on: ubuntu-latest
     environment: prd
+    outputs:
+      processed-artifacts: ${{ steps.push-sign.outputs.ProcessedArtifacts }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
