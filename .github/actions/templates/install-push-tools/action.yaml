@@ -14,48 +14,49 @@ runs:
     - name: Install ORAS
       shell: pwsh
       run: |
-        orasVersion="${{ inputs.orasVersion }}"
-        orasUrl="https://github.com/oras-project/oras/releases/download/v${orasVersion}/oras_${orasVersion}_linux_amd64.tar.gz"
-        installDir="${{ github.workspace }}/tools/oras"
-        tarPath="${{ runner.temp }}/oras.tar.gz"
+        $orasVersion = "${{ inputs.orasVersion }}"
+        $orasUrl = "https://github.com/oras-project/oras/releases/download/v$orasVersion/oras_${orasVersion}_linux_amd64.tar.gz"
+        $installDir = "${{ github.workspace }}/tools/oras"
+        $tarPath = "${{ runner.temp }}/oras.tar.gz"
 
-        echo "Creating installation directory..."
-        mkdir -p "$installDir"
+        Write-Host "Creating installation directory..."
+        New-Item -ItemType Directory -Path $installDir -Force
 
-        echo "Downloading ORAS v${orasVersion}..."
-        echo "From: $orasUrl"
-        curl -sL "$orasUrl" -o "$tarPath"
+        Write-Host "Downloading ORAS v$orasVersion..."
+        Write-Host "From: $orasUrl"
+        Invoke-WebRequest -Uri $orasUrl -OutFile $tarPath
 
-        echo "Extracting ORAS..."
-        tar -xzf "$tarPath" -C "$installDir"
+        Write-Host "Extracting ORAS..."
+        tar -xzf $tarPath -C $installDir
 
-        echo "Cleaning up temporary files..."
-        rm -f "$tarPath"
+        Write-Host "Cleaning up temporary files..."
+        Remove-Item $tarPath -Force
 
         # Add to PATH for all subsequent tasks in this job
-        echo "Adding ORAS to PATH..."
-        echo "$installDir" >> $GITHUB_PATH
+        Write-Host "Adding ORAS to PATH..."
+        "$installDir" | Add-Content -Path $env:GITHUB_PATH
 
-        echo "Verifying ORAS installation..."
-        "$installDir/oras" version
+        Write-Host "Verifying ORAS installation..."
+        & "$installDir/oras" version
+
     - name: Install Cosign
       shell: pwsh
       run: |
-        cosignVersion="${{ inputs.cosignVersion }}"
-        cosignUrl="https://github.com/sigstore/cosign/releases/download/v${cosignVersion}/cosign-linux-amd64"
-        installDir="${{ github.workspace }}/tools/cosign"
+        $cosignVersion = "${{ inputs.cosignVersion }}"
+        $cosignUrl = "https://github.com/sigstore/cosign/releases/download/v$cosignVersion/cosign-linux-amd64"
+        $installDir = "${{ github.workspace }}/tools/cosign"
 
-        echo "Creating installation directory..."
-        mkdir -p "$installDir"
+        Write-Host "Creating installation directory..."
+        New-Item -ItemType Directory -Path $installDir -Force
 
-        echo "Downloading cosign v${cosignVersion}..."
-        cosignPath="$installDir/cosign"
-        curl -sL "$cosignUrl" -o "$cosignPath"
-        chmod +x "$cosignPath"
+        Write-Host "Downloading cosign v$cosignVersion..."
+        $cosignPath = "$installDir/cosign"
+        Invoke-WebRequest -Uri $cosignUrl -OutFile $cosignPath
+        chmod +x $cosignPath
 
         # Add to PATH for all subsequent tasks in this job
-        echo "Adding cosign to PATH..."
-        echo "$installDir" >> $GITHUB_PATH
+        Write-Host "Adding cosign to PATH..."
+        "$installDir" | Add-Content -Path $env:GITHUB_PATH
 
-        echo "Verifying cosign installation..."
-        "$cosignPath" version
+        Write-Host "Verifying cosign installation..."
+        & $cosignPath version
