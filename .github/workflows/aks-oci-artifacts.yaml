@@ -10,11 +10,11 @@ permissions:
 
 jobs:
   build-oci-artifacts:
-    uses: ./.github/workflows/templates/aks-oci-build.yaml
+    uses: ./.github/workflows/aks-oci-build.yaml
 
   push-sign-oci-artifacts:
     needs: build-oci-artifacts
-    uses: ./.github/workflows/templates/aks-oci-push.yaml
+    uses: ./.github/workflows/aks-oci-push.yaml
     with:
       keyVaultName: "ashwin-aks-kv"
       signingKeyName: oci-artifact-signing-key
@@ -23,7 +23,7 @@ jobs:
 
   promote-dev:
     needs: push-sign-oci-artifacts
-    uses: ./.github/workflows/templates/aks-oci-promote.yaml
+    uses: ./.github/workflows/aks-oci-promote.yaml
     with:
       environment: dev
       acrName: ashwinaks
