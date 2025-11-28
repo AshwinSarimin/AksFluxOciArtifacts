@@ -1,5 +1,8 @@
 name: Build OCI Artifacts
 
+env:
+  variableFile: ./.github/variables/dev.yaml
+
 on:
   workflow_call:
     #inputs:
@@ -12,7 +15,7 @@ on:
     #    value: ${{ jobs.main.outputs.modules }}
 
 jobs:
-  main:
+  build-artifacts:
     runs-on: ubuntu-latest
     #outputs:
     #  modules: ${{ steps.get-changed-modules.outputs.modules }}

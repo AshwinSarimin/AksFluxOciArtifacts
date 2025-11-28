@@ -1,41 +1,8 @@
-<#
-.SYNOPSIS
-    Generates a cosign signing key in Azure Key Vault.
-
-.DESCRIPTION
-    This script creates an RSA key in Azure Key Vault that can be used with cosign
-    for signing container images and OCI artifacts. The key is created with appropriate
-    permissions for signing operations.
-
-.PARAMETER sharedConfig
-  JSON string containing platform-wide shared configurations.
-  Includes shared keyVault configurations.
-
-.PARAMETER region
-    The region to use for selecting the appropriate Key Vault.
-
-.PARAMETER KeyName
-    The name of the signing key to create.
-
-.PARAMETER KeySize
-    The size of the RSA key in bits. Default is 3072. Valid values: 2048, 3072, 4096.
-
-.PARAMETER Force
-    If specified, will delete and recreate the key if it already exists.
-
-.EXAMPLE
-    .\generate-signing-key.ps1 -KeyVaultName "mykeyvault" -KeyName "cosign-key"
-
-.EXAMPLE
-    .\generate-signing-key.ps1 -KeyVaultName "mykeyvault" -KeyName "cosign-key" -KeySize 4096 -Force
-#>
-
 param(
-  [Parameter(Mandatory = $true)][string] $KeyName,  
-  [Parameter(Mandatory = $true)][string] $sharedConfig,
-  [Parameter(Mandatory = $true)][string] $region,
-  [Parameter(Mandatory = $false)][ValidateSet(2048, 4096)][int] $KeySize = 2048,
-  [Parameter(Mandatory = $false)][switch] $Force
+  [Parameter(Mandatory = $true)][string] $keyVaultName,  
+  [Parameter(Mandatory = $true)][string] $keyName,
+  [Parameter(Mandatory = $false)][ValidateSet(2048, 4096)][int] $keySize = 2048,
+  [Parameter(Mandatory = $false)][switch] $force
 )
 
 Set-StrictMode -Version Latest
@@ -97,18 +64,6 @@ function New-SigningKey {
   return $key | ConvertFrom-Json
 }
 
-try {
-  $sharedConfigObj = $sharedConfig | ConvertFrom-Json
-}
-catch {
-  Write-Error "Failed to parse JSON parameters: $($_.Exception.Message)"
-  throw
-}
-
-$KeyVaultName = $sharedConfigObj.regions | Where-Object { $_.name -eq $region } | Select-Object -ExpandProperty sharedKeyVaultName
-
-$KeyVaultName
-
 # Validate prerequisites
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "Cosign Signing Key Generation" -ForegroundColor Cyan
@@ -129,19 +84,19 @@ if (-not (Test-KeyVaultExists -vaultName $KeyVaultName)) {
 Write-Host "$CHECK Key Vault found" -ForegroundColor Green
 
 # Check if key already exists
-$keyExists = Test-KeyExists -vaultName $KeyVaultName -name $KeyName
+$keyExists = Test-KeyExists -vaultName $KeyVaultName -name $keyName
 
 if ($keyExists) {
-  if ($Force) {
-    Write-Host "$INFO Key '$KeyName' already exists, creating new version..." -ForegroundColor Yellow
+  if ($force) {
+    Write-Host "$INFO Key '$keyName' already exists, creating new version..." -ForegroundColor Yellow
   } else {
-    Write-Host "$INFO Key '$KeyName' already exists in Key Vault '$KeyVaultName'" -ForegroundColor Yellow
+    Write-Host "$INFO Key '$keyName' already exists in Key Vault '$KeyVaultName'" -ForegroundColor Yellow
     Write-Host "Use -Force parameter to recreate the key." -ForegroundColor Yellow
 
     # Output existing key details
     $existingKey = az keyvault key show `
       --vault-name $KeyVaultName `
-      --name $KeyName `
+      --name $keyName `
       --output json | ConvertFrom-Json
 
     Write-Host "`n$INFO Existing Key Details:" -ForegroundColor Cyan
@@ -150,7 +105,7 @@ if ($keyExists) {
     Write-Host "  Created: $($existingKey.attributes.created)"
 
     # Output the Key Vault reference for cosign
-    $keyId = "azurekms://$KeyVaultName.vault.azure.net/$KeyName"
+    $keyId = "azurekms://$KeyVaultName.vault.azure.net/$keyName"
     Write-Host "`n$CHECK Cosign Key Reference:" -ForegroundColor Green
     Write-Host "  $keyId" -ForegroundColor White
     Write-Host "`n##vso[task.setvariable variable=CosignKeyId;isOutput=true]$keyId"
@@ -160,7 +115,7 @@ if ($keyExists) {
 }
 
 # Create the signing key
-$newKey = New-SigningKey -vaultName $KeyVaultName -name $KeyName -size $KeySize
+$newKey = New-SigningKey -vaultName $KeyVaultName -name $keyName -size $keySize
 
 if ($null -eq $newKey) {
   exit 1
@@ -175,7 +130,7 @@ Write-Host "  Operations: $($newKey.key.keyOps -join ', ')"
 Write-Host "  Protection: $($newKey.attributes.recoveryLevel)"
 
 # Test the key with cosign
-$keyId = "azurekms://$KeyVaultName.vault.azure.net/$KeyName"
+$keyId = "azurekms://$KeyVaultName.vault.azure.net/$keyName"
 Write-Host "`n$INFO Testing key with cosign..." -ForegroundColor Cyan
 Write-Host "  Key Reference: $keyId"
 
@@ -195,7 +150,6 @@ if ($LASTEXITCODE -eq 0) {
   exit 1
 }
 
-# Output for Azure DevOps pipeline
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "Pipeline Variables" -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
@@ -203,11 +157,11 @@ Write-Host "========================================`n" -ForegroundColor Cyan
 Write-Host "Setting pipeline output variables:"
 Write-Host "  CosignKeyId: $keyId"
 Write-Host "  CosignKeyVault: $KeyVaultName"
-Write-Host "  CosignKeyName: $KeyName"
+Write-Host "  CosignKeyName: $keyName"
 
-Write-Host "##vso[task.setvariable variable=CosignKeyId;isOutput=true]$keyId"
-Write-Host "##vso[task.setvariable variable=CosignKeyVault;isOutput=true]$KeyVaultName"
-Write-Host "##vso[task.setvariable variable=CosignKeyName;isOutput=true]$KeyName"
+#Write-Host "##vso[task.setvariable variable=CosignKeyId;isOutput=true]$keyId"
+#Write-Host "##vso[task.setvariable variable=CosignKeyVault;isOutput=true]$KeyVaultName"
+#Write-Host "##vso[task.setvariable variable=CosignKeyName;isOutput=true]$keyName"
 
 Write-Host "`n$CHECK Key generation completed successfully!" -ForegroundColor Green
 Write-Host "`nUsage in scripts:" -ForegroundColor Cyan

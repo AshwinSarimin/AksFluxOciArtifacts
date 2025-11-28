@@ -11,6 +11,10 @@ jobs:
     #  githubAppID: ${{ vars.IODENBOSCHDEVOPSBICEP }}
     #secrets: inherit
 
+  PushAndSignOCIArtifacts:
+    needs: BuildOCIArtifacts
+    uses: ./.github/workflows/aks-oci-push.yaml
+
 #  PushAndSignOCIArtifacts:
 #    name: Push and Sign OCI Artifacts
 #    runs-on: ubuntu-latest

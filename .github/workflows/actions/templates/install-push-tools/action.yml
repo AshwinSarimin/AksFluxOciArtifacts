@@ -1,0 +1,61 @@
+name: "Publish module"
+
+inputs: 
+  orasVersion:
+    required: true
+    default: '1.3.0'
+  cosignVersion:
+    required: true
+    default: '2.6.1'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install ORAS
+      shell: pwsh
+      run: |
+        $orasVersion = "${{ inputs.orasVersion }}"
+        $orasUrl = "https://github.com/oras-project/oras/releases/download/v$orasVersion/oras_$($orasVersion)_windows_amd64.zip"
+        $installDir = "${{ github.workspace }}\tools\oras"
+        $zipPath = "${{ runner.temp }}\oras.zip"
+
+        Write-Host "Creating installation directory..."
+        New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+
+        Write-Host "Downloading ORAS v$orasVersion..."
+        Write-Host "From: $orasUrl"
+        Invoke-WebRequest -Uri $orasUrl -OutFile $zipPath
+
+        Write-Host "Extracting ORAS..."
+        Expand-Archive -Path $zipPath -DestinationPath $installDir -Force
+
+        Write-Host "Cleaning up temporary files..."
+        Remove-Item -Path $zipPath -Force
+
+        # Add to PATH for all subsequent tasks in this job
+        Write-Host "Adding ORAS to PATH..."
+        echo "$installDir" >> $env:GITHUB_PATH
+
+        Write-Host "Verifying ORAS installation..."
+        $orasPath = Join-Path $installDir "oras.exe"
+        & $orasPath version
+    - name: Install Cosign
+      shell: pwsh
+      run: |
+        $cosignVersion = "${{ inputs.cosignVersion }}"
+        $cosignUrl = "https://github.com/sigstore/cosign/releases/download/v$cosignVersion/cosign-windows-amd64.exe"
+        $installDir = "${{ github.workspace }}\tools\cosign"
+
+        Write-Host "Creating installation directory..."
+        New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+
+        Write-Host "Downloading cosign $cosignVersion..."
+        $cosignPath = Join-Path $installDir "cosign.exe"
+        Invoke-WebRequest -Uri $cosignUrl -OutFile $cosignPath
+
+        # Add to PATH for all subsequent tasks in this job
+        Write-Host "Adding cosign to PATH..."
+        echo "$installDir" >> $env:GITHUB_PATH
+
+        Write-Host "Verifying cosign installation..."
+        & $cosignPath version
