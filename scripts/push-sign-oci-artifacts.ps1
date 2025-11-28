@@ -1,72 +1,9 @@
-<#
-.SYNOPSIS
-    Pushes Flux OCI artifacts to Azure Container Registry and signs them using Cosign with Azure Key Vault.
-
-.DESCRIPTION
-    This script processes .tgz artifact files from a specified folder, pushes them to Azure Container Registry (ACR)
-    using ORAS, and signs them with Cosign using an Azure Key Vault signing key. Each artifact is tagged with
-    build-specific metadata and verified after signing.
-
-    The script requires the following tools to be available in PATH:
-    - az (Azure CLI)
-    - cosign (Sigstore Cosign)
-    - oras (OCI Registry As Storage)
-    - git
-
-.PARAMETER sharedConfig
-  JSON string containing platform-wide shared configurations.
-  Includes shared keyVault configurations.
-
-.PARAMETER ArtifactFolder
-  Path to the folder containing the .tgz artifact files to be pushed.
-  The folder must exist and contain at least one .tgz file.
-
-.PARAMETER AcrName
-    Name of the Azure Container Registry where artifacts will be pushed.
-    Example: "myacr" (without .azurecr.io suffix)
-
-.PARAMETER RepositoryFolder
-    Base repository path in ACR where artifacts will be stored.
-    The full path will be: {RepositoryFolder}/{Region}/{ArtifactName}
-
-.PARAMETER BuildNumber
-    Build number or version tag to apply to the pushed artifacts.
-    This will be used as the artifact tag in ACR.
-
-.PARAMETER Region
-    Azure region identifier for multi-region deployments.
-    Valid values: 'weu' (West Europe), 'neu' (North Europe)
-
-.PARAMETER KeyVaultName
-    Name of the Azure Key Vault containing the signing key.
-    Example: "my-keyvault"
-
-.PARAMETER SigningKeyName
-    Name of the signing key stored in Azure Key Vault.
-    Used to sign artifacts with Cosign.
-
-.EXAMPLE
-    .\push-and-sign-artifact.ps1 `
-        -ArtifactFolder "./artifacts" `
-        -AcrName "myacr" `
-        -RepositoryFolder "flux/platform" `
-        -BuildNumber "1.0.0" `
-        -Region "weu" `
-        -KeyVaultName "my-keyvault" `
-        -SigningKeyName "signing-key"
-
-.OUTPUTS
-    Sets Azure DevOps pipeline variable 'ProcessedArtifacts' with JSON summary of processed artifacts.
-
-#>
 param(
-  [Parameter(Mandatory = $true)][string] $SigningKeyName,
-  [Parameter(Mandatory = $true)][string] $sharedConfig,
-  [Parameter(Mandatory = $true)][string] $region,
-  [Parameter(Mandatory = $true)][string] $ArtifactFolder, # Path where pipeline artifacts (.tgz) are downloaded
-  [Parameter(Mandatory = $true)][string] $RepositoryFolder,
-  [Parameter(Mandatory = $true)][string] $AcrName,
-  [Parameter(Mandatory = $true)][string] $BuildNumber
+  [Parameter(Mandatory = $true)][string] $signingKeyName,
+  [Parameter(Mandatory = $true)][string] $artifactFolder, # Path where pipeline artifacts (.tgz) are downloaded
+  [Parameter(Mandatory = $true)][string] $repositoryFolder,
+  [Parameter(Mandatory = $true)][string] $acrName,
+  [Parameter(Mandatory = $true)][string] $buildNumber
 )
 
 Set-StrictMode -Version Latest
@@ -87,44 +24,31 @@ function Require-Command {
 
 function Get-KeyIdentifier {
   # Get latest version
-  return "azurekms://$KeyVaultName.vault.azure.net/$SigningKeyName"
+  return "azurekms://$KeyVaultName.vault.azure.net/$signingKeyName"
 }
 
 Require-Command -Name az
 Require-Command -Name cosign
 
-try {
-  $sharedConfigObj = $sharedConfig | ConvertFrom-Json
-}
-catch {
-  Write-Error "Failed to parse JSON parameters: $($_.Exception.Message)"
-  throw
-}
-
-$KeyVaultName = $sharedConfigObj.regions | Where-Object { $_.name -eq $region } | Select-Object -ExpandProperty sharedKeyVaultName
-
-$KeyVaultName
-
 # Validate artifact path exists
-if (-not (Test-Path -Path $ArtifactFolder -PathType Container)) {
-  throw "Artifact path '$ArtifactFolder' does not exist."
+if (-not (Test-Path -Path $artifactFolder -PathType Container)) {
+  throw "Artifact path '$artifactFolder' does not exist."
 }
 
 # Validate prerequisites
 Write-Host "`n==============================================="
-Write-Host "Processing artifacts from: $ArtifactFolder"
-Write-Host "Buildnumber: $BuildNumber"
+Write-Host "Processing artifacts from: $artifactFolder"
+Write-Host "Buildnumber: $buildNumber"
 Write-Host "=================================================`n"
 
 
-Write-Host "$INFO Logging into ACR '$AcrName'..."
-az acr login --name $AcrName | Out-Null
+Write-Host "$INFO Logging into ACR '$acrName'..."
+az acr login --name $acrName | Out-Null
 
 # Find all .tgz files
-$tgzFiles = Get-ChildItem -Path $ArtifactFolder -Filter "*.tgz" -Recurse -File
-
+$tgzFiles = Get-ChildItem -Path $artifactFolder -Filter "*.tgz" -Recurse -File
 if ($tgzFiles.Count -eq 0) {
-  Write-Host "$CROSS No .tgz files found in '$ArtifactFolder'."
+  Write-Host "$CROSS No .tgz files found in '$artifactFolder'."
   exit 1
 }
 
@@ -145,8 +69,8 @@ foreach ($tgzFile in $tgzFiles) {
   $artifactName = $tgzFile.BaseName
 
   # Build repository path
-  $repository = "$RepositoryFolder/$Region/$artifactName"
-  $fullRef = "$AcrName.azurecr.io/$($repository):$($BuildNumber)"
+  $repository = "$repositoryFolder/$artifactName"
+  $fullRef = "$acrName.azurecr.io/$($repository):$($buildNumber)"
 
   Write-Host "$INFO Pushing $($tgzFile.Name) as '$fullRef'..."
 
@@ -189,14 +113,14 @@ foreach ($tgzFile in $tgzFiles) {
     } else {
       $manifestJson = $manifestOutput | ConvertFrom-Json
       $digest = $manifestJson.digest
-      $signRef = "$AcrName.azurecr.io/$repository@$digest"
+      $signRef = "$acrName.azurecr.io/$repository@$digest"
     }
 
     if (-not $digest) {
       Write-Warning "$INFO Digest not found in manifest fetch output."
-      $signRef = "$AcrName.azurecr.io/$($repository):$BuildNumber"
+      $signRef = "$acrName.azurecr.io/$($repository):$buildNumber"
     } else {
-      $signRef = "$AcrName.azurecr.io/$repository@$digest"
+      $signRef = "$acrName.azurecr.io/$repository@$digest"
     }
 
     Write-Host "Signing artifact with cosign..."
@@ -230,8 +154,7 @@ foreach ($tgzFile in $tgzFiles) {
       ArtifactName = $artifactName
       Digest = $digest
       Reference = $signRef
-      BuildNumber = $BuildNumber
-      Region = $Region
+      BuildNumber = $buildNumber
       Repository = $repository
     }
 
@@ -262,8 +185,8 @@ if ($failed.Count -gt 0) {
   exit 1
 }
 
-Write-Host "`n$CHECK All artifacts pushed and signed successfully for buildnumber: $BuildNumber" -ForegroundColor Green
+Write-Host "`n$CHECK All artifacts pushed and signed successfully for buildnumber: $buildNumber" -ForegroundColor Green
 
 # Output summary for pipeline consumption
-$summaryJson = $processed | ConvertTo-Json -Depth 10 -Compress
-Write-Host "##vso[task.setvariable variable=ProcessedArtifacts;isOutput=true]$summaryJson"
+#$summaryJson = $processed | ConvertTo-Json -Depth 10 -Compress
+#Write-Host "##vso[task.setvariable variable=ProcessedArtifacts;isOutput=true]$summaryJson"

@@ -9,6 +9,9 @@ on:
       signingKeyName:
         required: true
         type: string
+      acrName:
+        required: true
+        type: string
 
 jobs:
   push-and-sign-artifacts:
@@ -39,41 +42,8 @@ jobs:
         with:
           inlineScript: ./scripts/generate-signing-key.ps1 -keyName ${{ inputs.signingKeyName }} -keyVaultName ${{ inputs.keyVaultName }}
           azPSVersion: "latest"
-        
-        
-
-
-#      - task: AzureCLI@2
-#        displayName: 'Push and Sign OCI Artifacts'
-#        name: PushAndSignArtifacts
-#        inputs:
-#          azureSubscription: ${{ parameters.serviceConnection }}
-#          scriptType: 'pscore'
-#          scriptLocation: 'scriptPath'
-#          scriptPath: '$(System.DefaultWorkingDirectory)/.azuredevops/scripts/gitops/push-and-sign-oci-artifact.ps1'
-#          arguments: '-SigningKeyName $(signingKeyName) -sharedConfig ''$(sharedConfig)'' -Region ${{ parameters.region }} -ArtifactFolder "$(Pipeline.Workspace)/oci-artifacts" -RepositoryFolder "manifests" -AcrName $(pfmAcrName) -BuildNumber $(Build.BuildId)'
-#      - task: PowerShell@2
-#        displayName: 'Prepare Push and Sign Results for Publishing'
-#        env:
-#          signingResults: $(PushAndSignArtifacts.ProcessedArtifacts)
-#        inputs:
-#          targetType: 'inline'
-#          script: |
-#            $destDir = "$(Build.ArtifactStagingDirectory)/push-and-sign-results"
-#            if (-Not (Test-Path -Path $destDir)) {
-#                New-Item -ItemType Directory -Path $destDir | Out-Null
-#            }
-#
-#            # Retrieve the JSON output from the previous step
-#            $summaryJson = "$env:signingResults"
-#
-#            Write-Host "Retrieved JSON from pipeline variable:"
-#
-#            $summary = $summaryJson | ConvertFrom-Json
-#            $summary | ConvertTo-Json -Depth 5 | Out-File -FilePath (Join-Path $destDir 'results.json') -Encoding UTF8
-#            Write-Host "Successfully created summary file with $($summary.Count) items"
-#      - task: PublishPipelineArtifact@1
-#        displayName: 'Publish Push and Sign Results'
-#        inputs:
-#          targetPath: '$(Build.ArtifactStagingDirectory)/push-and-sign-results'
-#          artifact: 'push-and-sign-results-${{ parameters.region }}'
+      - name: Push and Sign OCI Artifacts
+        uses: azure/powershell@v2
+        with:
+          inlineScript: ./scripts/gitops/push-sign-oci-artifacts.ps1 -signingKeyName ${{ inputs.signingKeyName }} -artifactFolder "${{ runner.temp }}/oci-artifacts" -repositoryFolder "manifests" -acrName ${{ inputs.acrName }} -buildNumber ${{ github.run_number }}
+          azPSVersion: "latest"

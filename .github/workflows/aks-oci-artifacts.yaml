@@ -21,6 +21,7 @@ jobs:
     with:
       keyVaultName: "ashwin-aks-kv"
       signingKeyName: oci-artifact-signing-key
+      acrName: ashwinaks
     secrets: inherit
 
 

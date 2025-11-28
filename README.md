@@ -89,3 +89,5 @@ gh secret set CLIENT_ID --body "$CLIENT_ID" --env "$GH_ENV_NAME" --repo ${GH_USE
 
 gh secret set TENANT_ID --body "$TENANT_ID" --env "$GH_ENV_NAME" --repo ${GH_USERNAME}/${GH_REPO_NAME}
 ```
+
+Needs Owner RBAC on Resource Group & KeyVault Administrator RBAC on KeyVault
