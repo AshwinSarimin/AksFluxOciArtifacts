@@ -6,7 +6,7 @@ $keyVaultName = "ashwin-aks-kv"
 $fluxIdentityName = "ashwin-aks-flux"
 $location = "westeurope"
 
-$environmentCode
+$environmentCode = "dev"
 
 az deployment group create `
   --name main-BootstrapCluster `
@@ -17,10 +17,9 @@ az deployment group create `
       clusterName="$aksName" `
       environmentCode="$environmentCode" `
       fluxConfigName="cluster" `
-      fluxConfigNamespace="ns-flux-cluster-config" `
-      kustomizationPath="./clusters/teknologi/dev" `
+      fluxConfigNamespace="flux-cluster-config" `
+      fluxExtensionNamespace="flux-system" `
+      kustomizationPath="./clusters/teknologi/$environmentCode" `
       fluxIdentityName="$fluxIdentityName" `
-      #managedIdentitiesResourceGroupName="$($clusterSettings.region.managedIdentitiesResourceGroupName)" `
-      #fluxExtensionNamespace="$($clusterSettings.env.fluxExtensionNamespace)" `
       ociRepositoryUrl="$($acrName).azurecr.io/manifests/clusters" `
       cosignPublicKey="$($env:COSIGN_PUBLIC_KEY)"

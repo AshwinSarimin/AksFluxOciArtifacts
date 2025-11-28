@@ -44,7 +44,6 @@ LOCATION="westeurope"
 IDENTITY_NAME="ashwin-aks-deployment"
 GH_USERNAME="AshwinSarimin"
 GH_REPO_NAME="AksFluxOciArtifacts"
-GH_ENV_NAME="prd"
 
 # Ensure you have Azure CLI installed and logged in
 az login --tenant "$TENANT_ID" --use-device-code
@@ -56,9 +55,25 @@ az account set --subscription "$SUBSCRIPTION_ID"
 az identity federated-credential create \
     --resource-group "$RESOURCE_GROUP_NAME" \
     --identity-name "$IDENTITY_NAME" \
-    --name "$GH_REPO_NAME" \
+    --name "$GH_REPO_NAME-dev" \
     --issuer "https://token.actions.githubusercontent.com" \
-    --subject "repo:${GH_USERNAME}/${GH_REPO_NAME}:environment:${GH_ENV_NAME}" \
+    --subject "repo:${GH_USERNAME}/${GH_REPO_NAME}:environment:dev" \
+    --audiences "api://AzureADTokenExchange"
+
+az identity federated-credential create \
+    --resource-group "$RESOURCE_GROUP_NAME" \
+    --identity-name "$IDENTITY_NAME" \
+    --name "$GH_REPO_NAME-tst" \
+    --issuer "https://token.actions.githubusercontent.com" \
+    --subject "repo:${GH_USERNAME}/${GH_REPO_NAME}:environment:tst" \
+    --audiences "api://AzureADTokenExchange"
+
+az identity federated-credential create \
+    --resource-group "$RESOURCE_GROUP_NAME" \
+    --identity-name "$IDENTITY_NAME" \
+    --name "$GH_REPO_NAME-prd" \
+    --issuer "https://token.actions.githubusercontent.com" \
+    --subject "repo:${GH_USERNAME}/${GH_REPO_NAME}:environment:prd" \
     --audiences "api://AzureADTokenExchange"
 
 IDENTITY=$(az identity show \
@@ -80,14 +95,29 @@ OUTPUT=$(jq -n \
 
 echo "$OUTPUT"
 
-# Set GitHub secrets
+# Login Github
 gh auth login
 
-gh secret set SUBSCRIPTION_ID --body "$SUBSCRIPTION_ID" --env "$GH_ENV_NAME" --repo ${GH_USERNAME}/${GH_REPO_NAME}
+# Set GitHub secrets for DEV
+gh secret set SUBSCRIPTION_ID --body "$SUBSCRIPTION_ID" --env "dev" --repo ${GH_USERNAME}/${GH_REPO_NAME}
 
-gh secret set CLIENT_ID --body "$CLIENT_ID" --env "$GH_ENV_NAME" --repo ${GH_USERNAME}/${GH_REPO_NAME}
+gh secret set CLIENT_ID --body "$CLIENT_ID" --env "dev" --repo ${GH_USERNAME}/${GH_REPO_NAME}
 
-gh secret set TENANT_ID --body "$TENANT_ID" --env "$GH_ENV_NAME" --repo ${GH_USERNAME}/${GH_REPO_NAME}
+gh secret set TENANT_ID --body "$TENANT_ID" --env "dev" --repo ${GH_USERNAME}/${GH_REPO_NAME}
+
+# Set GitHub secrets for TST
+gh secret set SUBSCRIPTION_ID --body "$SUBSCRIPTION_ID" --env "tst" --repo ${GH_USERNAME}/${GH_REPO_NAME}
+
+gh secret set CLIENT_ID --body "$CLIENT_ID" --env "tst" --repo ${GH_USERNAME}/${GH_REPO_NAME}
+
+gh secret set TENANT_ID --body "$TENANT_ID" --env "tst" --repo ${GH_USERNAME}/${GH_REPO_NAME}
+
+# Set GitHub secrets for PRD
+gh secret set SUBSCRIPTION_ID --body "$SUBSCRIPTION_ID" --env "prd" --repo ${GH_USERNAME}/${GH_REPO_NAME}
+
+gh secret set CLIENT_ID --body "$CLIENT_ID" --env "prd" --repo ${GH_USERNAME}/${GH_REPO_NAME}
+
+gh secret set TENANT_ID --body "$TENANT_ID" --env "prd" --repo ${GH_USERNAME}/${GH_REPO_NAME}
 ```
 
 Needs Owner RBAC on Resource Group & KeyVault Administrator RBAC on KeyVault

@@ -12,16 +12,11 @@ on:
       acrName:
         required: true
         type: string
-    outputs:
-      processed-artifacts:
-        value: ${{ jobs.push-and-sign-artifacts.outputs.processed-artifacts }}
 
 jobs:
   push-and-sign-artifacts:
     runs-on: ubuntu-latest
     environment: prd
-    outputs:
-      processed-artifacts: ${{ steps.push-sign.outputs.ProcessedArtifacts }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -53,3 +48,27 @@ jobs:
         with:
           inlineScript: ./scripts/push-sign-oci-artifacts.ps1 -signingKeyName ${{ inputs.signingKeyName }} -keyVaultName ${{ inputs.keyVaultName }} -artifactFolder "${{ runner.temp }}/oci-artifacts" -repositoryFolder "manifests" -acrName ${{ inputs.acrName }} -buildNumber ${{ github.run_number }}
           azPSVersion: "latest"
+      - name: Prepare results for publishing
+        shell: pwsh
+        env:
+          signingResults: ${{ steps.push-sign.outputs.ProcessedArtifacts }}
+        run: |
+          $destDir = "${{ runner.temp }}/push-and-sign-results"
+          if (-Not (Test-Path -Path $destDir)) {
+              New-Item -ItemType Directory -Path $destDir | Out-Null
+          }
+
+          # Retrieve the JSON output from the previous step
+          $summaryJson = "$env:signingResults"
+
+          Write-Host "Retrieved JSON from pipeline variable:"
+          Write-Host $summaryJson
+
+          $summary = $summaryJson | ConvertFrom-Json
+          $summary | ConvertTo-Json -Depth 5 | Out-File -FilePath (Join-Path $destDir 'results.json') -Encoding UTF8
+          Write-Host "Successfully created summary file"
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: push-and-sign-results
+          path: ${{ runner.temp }}/push-and-sign-results

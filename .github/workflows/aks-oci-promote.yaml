@@ -17,6 +17,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Download Push and Sign Results
+        uses: actions/download-artifact@v4
+        with:
+          name: 'push-and-sign-results'
+          path: ${{ runner.temp }}/push-and-sign-results
       - name: Install tools
         uses: ./.github/actions/templates/install-signin-tools
         with: 
@@ -32,5 +37,5 @@ jobs:
       - name: Promote OCI Artifacts
         uses: azure/powershell@v2
         with:
-          inlineScript: ./scripts/promote-oci-artifacts.ps1 -resultsSummaryFilePath ${{ needs.push-sign-oci-artifacts.outputs.processed-artifacts }} -acrName ${{ inputs.acrName }} -environment ${{ inputs.environment }}
+          inlineScript: ./scripts/promote-oci-artifacts.ps1 -resultsFilePath "${{ runner.temp }}/push-and-sign-results/results.json" -acrName ${{ inputs.acrName }} -environment ${{ inputs.environment }}
           azPSVersion: "latest"

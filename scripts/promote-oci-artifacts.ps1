@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-  [Parameter(Mandatory = $true)][string]$resultsSummaryFilePath,
+  [Parameter(Mandatory = $true)][string]$resultsFilePath,
   [Parameter(Mandatory = $true)][string]$acrName,
   [Parameter(Mandatory = $true)][string]$environment
 )
@@ -52,12 +52,12 @@ function Add-ArtifactTag {
 $registryUrl = "$acrName.azurecr.io"
 
 # Read result summary
-if (-Not (Test-Path -Path $resultsSummaryFilePath)) {
-    Write-Error "$CROSS Result summary file not found: $resultsSummaryFilePath"
+if (-Not (Test-Path -Path $resultsFilePath)) {
+    Write-Error "$CROSS Result summary file not found: $resultsFilePath"
     exit 1
 }
 
-$resultSummary = Get-Content -Path $resultsSummaryFilePath | ConvertFrom-Json
+$resultSummary = Get-Content -Path $resultsFilePath | ConvertFrom-Json
 
 
 Write-Host "=== OCI Artifact Promotion ==="

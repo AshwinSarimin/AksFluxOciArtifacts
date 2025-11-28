@@ -2,19 +2,15 @@
 // Parameters  //
 // =========== //
 
-//param instanceName string
-//param tenant string
-//param region string
 param clusterName string
 param environmentCode string
 param fluxConfigName string
 param fluxConfigNamespace string
+param fluxExtensionNamespace string
 param kustomizationPath string
 param kustomizationDependencies array = []
+param fluxIdentityName string
 param fluxConfigScope string = 'cluster'
-//param managedIdentitiesResourceGroupName string
-//param fluxExtensionNamespace string
-
 param ociRepositoryUrl string
 param cosignPublicKey string
 
