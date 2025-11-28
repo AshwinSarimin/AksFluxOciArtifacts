@@ -4,4 +4,4 @@ kind: Kustomization
 resources:
 - test.yaml
 
-namespace: ns-d-all-addon-flux-cluster-config-01
+namespace: flux-system

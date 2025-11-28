@@ -15,7 +15,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2025-05-01' exis
   name: clusterName
 }
 
-resource fluxAppConfig 'Microsoft.KubernetesConfiguration/fluxConfigurations@2023-05-01' = {
+resource fluxAppConfig 'Microsoft.KubernetesConfiguration/fluxConfigurations@2025-04-01' = {
   name: fluxConfigName
   scope: aksCluster
   properties: union(
@@ -37,7 +37,7 @@ resource fluxAppConfig 'Microsoft.KubernetesConfiguration/fluxConfigurations@202
       ociRepository: {
         url: ociRepository.url
         repositoryRef: {
-          tag: ociRepository.tag
+          tag: ociRepository.tag //tag or digest
         }
         syncIntervalInSeconds: (contains(ociRepository, 'syncIntervalInSeconds')) ? ociRepository.syncIntervalInSeconds : 120
         useWorkloadIdentity: ociRepository.useWorkloadIdentity

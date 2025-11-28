@@ -25,9 +25,9 @@ az deployment group create `
       clusterName="$aksName" `
       environmentCode="$environmentCode" `
       fluxConfigName="cluster" `
-      fluxConfigNamespace="flux-cluster-config" `
+      fluxConfigNamespace="flux-system" `
       fluxExtensionNamespace="flux-system" `
-      kustomizationPath="./clusters/teknologi/$environmentCode" `
+      kustomizationPath="./teknologi/$environmentCode" `
       fluxIdentityName="$fluxIdentityName" `
-      ociRepositoryUrl="$($acrName).azurecr.io/manifests/clusters" `
+      ociRepositoryUrl="oci://$($acrName).azurecr.io/manifests/clusters" `
       cosignPublicKey="$cosignPublicKey"

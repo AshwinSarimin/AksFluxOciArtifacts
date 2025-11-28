@@ -25,13 +25,15 @@ az keyvault create `
   --sku standard
 
 # Create AKS cluster
-az aks update `
+az aks create `
   --resource-group "$resourceGroup" `
   --name "$aksName" `
-  --enable-managed-identity `
-  --attach-acr "$acrName" `
-  --enable-oidc-issuer #`
+  --enable-workload-identity `
+  --enable-oidc-issuer `
+  --attach-acr "$acrName" #`
   #--generate-ssh-keys
+  #--enable-managed-identity
+
 
 # Create Flux managed identity
 az identity create `
@@ -46,7 +48,7 @@ az role assignment create `
    --scope $(az acr show --name $acrName --resource-group $resourceGroup --query "id" -o tsv) `
    --assignee-object-id $(az identity show --resource-group $resourceGroup --name $fluxIdentityName --query "principalId" -o tsv)
 
-
+#>
 # Create federation for flux identity and flux source controller
 az identity federated-credential create `
   --name "flux-source-controller" `
@@ -55,7 +57,7 @@ az identity federated-credential create `
   --issuer $(az aks show --name $aksName --resource-group $resourceGroup --query "oidcIssuerProfile.issuerUrl" --output tsv) `
   --subject "system:serviceaccount:flux-system:source-controller" `
   --audiences "api://AzureADTokenExchange"
-#>
+
 
 
 

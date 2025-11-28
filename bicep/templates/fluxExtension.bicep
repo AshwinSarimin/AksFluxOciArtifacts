@@ -38,6 +38,7 @@ resource fluxExtension 'Microsoft.KubernetesConfiguration/extensions@2024-11-01'
       'notification-controller.log-level': fluxControllersLogLevel
       'image-automation-controller.log-level': fluxControllersLogLevel
       'image-reflector-controller.log-level': fluxControllersLogLevel
+      'source-controller.feature-gates.ObjectLevelWorkloadIdentity': 'true'
     }
   }
 }
