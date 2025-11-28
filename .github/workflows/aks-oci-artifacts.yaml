@@ -8,11 +8,6 @@ permissions:
   id-token: write
   contents: read
 
-env:
-  keyVaultName: "ashwin-aks-kv"
-
-
-
 jobs:
   BuildOCIArtifacts:
     uses: ./.github/workflows/aks-oci-build.yaml
@@ -24,7 +19,7 @@ jobs:
     needs: BuildOCIArtifacts
     uses: ./.github/workflows/aks-oci-push.yaml
     with:
-      keyVaultName: ${{ env.keyVaultName }}
+      keyVaultName: "ashwin-aks-kv"
     secrets: inherit
 
 
