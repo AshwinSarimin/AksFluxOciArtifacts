@@ -9,7 +9,9 @@ permissions:
   contents: read
 
 env:
-  variableFile: ./.github/variables/dev.yaml
+  keyVaultName: "ashwin-aks-kv"
+
+
 
 jobs:
   BuildOCIArtifacts:
