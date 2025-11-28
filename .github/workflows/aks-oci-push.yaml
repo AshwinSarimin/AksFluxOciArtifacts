@@ -1,11 +1,16 @@
-name: Build OCI Artifacts
+name: Push OCI Artifacts
 
 on:
   workflow_call:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   push-and-sign-artifacts:
     runs-on: ubuntu-latest
+    environment: prd
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,7 +27,9 @@ jobs:
       - name: Azure Login
         uses: Azure/login@v1
         with:
-          creds: ${{ env.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.CLIENT_ID }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
           enable-AzPSSession: true
       - name: Generate Signing Key (if not exists)
         uses: azure/powershell@v1
