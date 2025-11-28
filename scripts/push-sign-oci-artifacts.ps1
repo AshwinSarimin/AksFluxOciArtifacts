@@ -47,12 +47,12 @@ az acr login --name $acrName | Out-Null
 
 # Find all .tgz files
 $tgzFiles = Get-ChildItem -Path $artifactFolder -Filter "*.tgz" -Recurse -File
-if ($tgzFiles.Count -eq 0) {
-  Write-Host "$CROSS No .tgz files found in '$artifactFolder'."
-  exit 1
-}
+#if ($tgzFiles.Count -eq 0) {
+#  Write-Host "$CROSS No .tgz files found in '$artifactFolder'."
+#  exit 1
+#}
 
-Write-Host "$CHECK Found $($tgzFiles.Count) artifact(s) to process."
+#Write-Host "$CHECK Found $($tgzFiles.Count) artifact(s) to process."
 
 $keyIdentifier = Get-KeyIdentifier
 Write-Host "$INFO Using Key Identifier: $keyIdentifier"

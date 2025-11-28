@@ -28,6 +28,7 @@ param cosignPublicKey string
 //var istioManagedIdentityName = '${tenant}-${region}-${environmentLetter}-mi-${instanceName}-istio'
 
 
+
 module fluxConfiguration './templates/fluxConfiguration.bicep' = {
   name: 'fluxConfiguration-${fluxConfigName}'
   params: {
