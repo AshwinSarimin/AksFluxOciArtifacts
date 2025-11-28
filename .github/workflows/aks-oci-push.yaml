@@ -13,7 +13,8 @@ on:
         required: true
         type: string
     outputs:
-      value: ${{ jobs.push-and-sign-artifacts.outputs.processed-artifacts }}
+      processed-artifacts:
+        value: ${{ jobs.push-and-sign-artifacts.outputs.processed-artifacts }}
 
 jobs:
   push-and-sign-artifacts:
