@@ -4,6 +4,13 @@ on:
   push:
   pull_request:
 
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  variableFile: ./.github/variables/dev.yaml
+
 jobs:
   BuildOCIArtifacts:
     uses: ./.github/workflows/aks-oci-build.yaml
@@ -14,6 +21,9 @@ jobs:
   PushAndSignOCIArtifacts:
     needs: BuildOCIArtifacts
     uses: ./.github/workflows/aks-oci-push.yaml
+    with:
+      keyVaultName: ${{ env.keyVaultName }}
+    secrets: inherit
 
 
 #  PushAndSignOCIArtifacts:
