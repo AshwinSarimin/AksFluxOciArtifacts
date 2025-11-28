@@ -6,6 +6,9 @@ on:
       environment:
         required: true
         type: string
+      acrName:
+        required: true
+        type: string
 
 jobs:
   promote-artifacts:

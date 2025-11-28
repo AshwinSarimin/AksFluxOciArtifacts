@@ -20,12 +20,12 @@ jobs:
       signingKeyName: oci-artifact-signing-key
       acrName: ashwinaks
     secrets: inherit
-#
-#  promote-dev:
-#    needs: push-sign-oci-artifacts
-#    uses: ./.github/workflows/aks-oci-promote.yaml
-#    with:
-#      environment: dev
-#      acrName: ashwinaks
-#    secrets: inherit
+
+  promote-dev:
+    needs: push-sign-oci-artifacts
+    uses: ./.github/workflows/aks-oci-promote.yaml
+    with:
+      environment: dev
+      acrName: ashwinaks
+    secrets: inherit
 
