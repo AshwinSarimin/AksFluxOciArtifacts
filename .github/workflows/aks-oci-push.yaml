@@ -14,28 +14,28 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      #- name: Download OCI Artifacts
-      #  uses: actions/download-artifact@v4
-      #  with:
-      #    name: oci-artifacts
-      #    path: ${{ runner.temp }}/oci-artifacts
+      - name: Download OCI Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: oci-artifacts
+          path: ${{ runner.temp }}/oci-artifacts
       - name: Install tools
         uses: ./.github/actions/templates/install-push-tools
         with: 
           orasVersion: '1.3.0'
           cosignVersion: '2.6.1'
-      #- name: Azure Login
-      #  uses: Azure/login@v1
-      #  with:
-      #    client-id: ${{ secrets.CLIENT_ID }}
-      #    tenant-id: ${{ secrets.TENANT_ID }}
-      #    subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
-      #    enable-AzPSSession: true
-      #- name: Generate Signing Key (if not exists)
-      #  uses: azure/powershell@v2
-      #  with:
-      #    inlineScript: ./scripts/generate-signing-key.ps1 -keyName $(signingKeyName) -keyVaultName ${{ inputs.keyVaultName }}
-      #    azPSVersion: "latest"
+      - name: Azure Login
+        uses: Azure/login@v1
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+      - name: Generate Signing Key (if not exists)
+        uses: azure/powershell@v2
+        with:
+          inlineScript: ./scripts/generate-signing-key.ps1 -keyName $(signingKeyName) -keyVaultName ${{ inputs.keyVaultName }}
+          azPSVersion: "latest"
         
         
 
