@@ -12,20 +12,20 @@ jobs:
   build-oci-artifacts:
     uses: ./.github/workflows/aks-oci-build.yaml
 
-  push-sign-oci-artifacts:
-    needs: build-oci-artifacts
-    uses: ./.github/workflows/aks-oci-push.yaml
-    with:
-      keyVaultName: "ashwin-aks-kv"
-      signingKeyName: oci-artifact-signing-key
-      acrName: ashwinaks
-    secrets: inherit
-
-  promote-dev:
-    needs: push-sign-oci-artifacts
-    uses: ./.github/workflows/aks-oci-promote.yaml
-    with:
-      environment: dev
-      acrName: ashwinaks
-    secrets: inherit
+#  push-sign-oci-artifacts:
+#    needs: build-oci-artifacts
+#    uses: ./.github/workflows/aks-oci-push.yaml
+#    with:
+#      keyVaultName: "ashwin-aks-kv"
+#      signingKeyName: oci-artifact-signing-key
+#      acrName: ashwinaks
+#    secrets: inherit
+#
+#  promote-dev:
+#    needs: push-sign-oci-artifacts
+#    uses: ./.github/workflows/aks-oci-promote.yaml
+#    with:
+#      environment: dev
+#      acrName: ashwinaks
+#    secrets: inherit
 

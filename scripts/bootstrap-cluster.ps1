@@ -9,7 +9,7 @@ $location = "westeurope"
 $environmentCode
 
 az deployment group create `
-  --name main-fluxConfiguration `
+  --name main-BootstrapCluster `
   --resource-group "$resourceGroup" `
   --template-file ../bicep/main.bicep `
   --verbose `
@@ -19,7 +19,6 @@ az deployment group create `
       fluxConfigName="cluster" `
       fluxConfigNamespace="ns-flux-cluster-config" `
       kustomizationPath="./clusters/teknologi/dev" `
-      kustomizationType="config" `
       fluxIdentityName="$fluxIdentityName" `
       #managedIdentitiesResourceGroupName="$($clusterSettings.region.managedIdentitiesResourceGroupName)" `
       #fluxExtensionNamespace="$($clusterSettings.env.fluxExtensionNamespace)" `

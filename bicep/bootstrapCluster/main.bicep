@@ -10,7 +10,6 @@ param environmentCode string
 param fluxConfigName string
 param fluxConfigNamespace string
 param kustomizationPath string
-param kustomizationType string
 param kustomizationDependencies array = []
 param fluxConfigScope string = 'cluster'
 //param managedIdentitiesResourceGroupName string
@@ -52,12 +51,10 @@ module fluxConfiguration '../templates/fluxConfiguration.bicep' = {
       cosignPublicKey: cosignPublicKey
     }
     kustomizations: {
-      '${kustomizationType}': {
-        path: kustomizationPath
-        syncIntervalInSeconds: 120
-        prune: true
-        dependsOn: kustomizationDependencies
-      }
+      path: kustomizationPath
+      syncIntervalInSeconds: 120
+      prune: true
+      dependsOn: kustomizationDependencies
     }
   }
   dependsOn: [
