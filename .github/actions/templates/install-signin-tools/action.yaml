@@ -1,0 +1,62 @@
+name: "Publish module"
+
+inputs: 
+  orasVersion:
+    required: true
+    default: '1.3.0'
+  cosignVersion:
+    required: true
+    default: '2.6.1'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install ORAS
+      shell: pwsh
+      run: |
+        $orasVersion = "${{ inputs.orasVersion }}"
+        $orasUrl = "https://github.com/oras-project/oras/releases/download/v$orasVersion/oras_${orasVersion}_linux_amd64.tar.gz"
+        $installDir = "${{ github.workspace }}/tools/oras"
+        $tarPath = "${{ runner.temp }}/oras.tar.gz"
+
+        Write-Host "Creating installation directory..."
+        New-Item -ItemType Directory -Path $installDir -Force
+
+        Write-Host "Downloading ORAS v$orasVersion..."
+        Write-Host "From: $orasUrl"
+        Invoke-WebRequest -Uri $orasUrl -OutFile $tarPath
+
+        Write-Host "Extracting ORAS..."
+        tar -xzf $tarPath -C $installDir
+
+        Write-Host "Cleaning up temporary files..."
+        Remove-Item $tarPath -Force
+
+        # Add to PATH for all subsequent tasks in this job
+        Write-Host "Adding ORAS to PATH..."
+        "$installDir" | Add-Content -Path $env:GITHUB_PATH
+
+        Write-Host "Verifying ORAS installation..."
+        & "$installDir/oras" version
+
+    - name: Install Cosign
+      shell: pwsh
+      run: |
+        $cosignVersion = "${{ inputs.cosignVersion }}"
+        $cosignUrl = "https://github.com/sigstore/cosign/releases/download/v$cosignVersion/cosign-linux-amd64"
+        $installDir = "${{ github.workspace }}/tools/cosign"
+
+        Write-Host "Creating installation directory..."
+        New-Item -ItemType Directory -Path $installDir -Force
+
+        Write-Host "Downloading cosign v$cosignVersion..."
+        $cosignPath = "$installDir/cosign"
+        Invoke-WebRequest -Uri $cosignUrl -OutFile $cosignPath
+        chmod +x $cosignPath
+
+        # Add to PATH for all subsequent tasks in this job
+        Write-Host "Adding cosign to PATH..."
+        "$installDir" | Add-Content -Path $env:GITHUB_PATH
+
+        Write-Host "Verifying cosign installation..."
+        & $cosignPath version

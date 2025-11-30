@@ -1,0 +1,47 @@
+name: AKS OCI Artifacts Pipeline
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-oci-artifacts:
+    uses: ./.github/workflows/aks-oci-build.yaml
+
+  push-sign-oci-artifacts:
+    needs: build-oci-artifacts
+    uses: ./.github/workflows/aks-oci-push.yaml
+    with:
+      keyVaultName: "teknologi-aks-kv"
+      signingKeyName: oci-artifact-signing-key
+      acrName: teknologiaks
+    secrets: inherit
+
+  promote-dev:
+    needs: push-sign-oci-artifacts
+    uses: ./.github/workflows/aks-oci-promote.yaml
+    with:
+      environment: dev
+      acrName: teknologiaks
+    secrets: inherit
+  
+  promote-tst:
+    needs: push-sign-oci-artifacts
+    uses: ./.github/workflows/aks-oci-promote.yaml
+    with:
+      environment: tst
+      acrName: teknologiaks
+    secrets: inherit
+  
+  promote-prd:
+    needs: push-sign-oci-artifacts
+    uses: ./.github/workflows/aks-oci-promote.yaml
+    with:
+      environment: prd
+      acrName: teknologiaks
+    secrets: inherit
+

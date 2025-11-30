@@ -1,0 +1,25 @@
+name: Build OCI Artifacts
+
+on:
+  workflow_call:
+
+jobs:
+  build-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Flux CLI
+        uses: fluxcd/flux2/action@main
+        with:
+          version: 'latest'
+      - name: Build OCI Artifacts
+        id: build-oci-artifacts
+        shell: pwsh
+        run: |
+          ./scripts/build-oci-artifacts.ps1 -FoldersToSync "./clusters" -DestinationFolder "${{ runner.temp }}/oci-artifacts"
+      - name: Upload OCI Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: oci-artifacts
+          path: ${{ runner.temp }}/oci-artifacts
