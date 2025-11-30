@@ -16,9 +16,9 @@ jobs:
     needs: build-oci-artifacts
     uses: ./.github/workflows/aks-oci-push.yaml
     with:
-      keyVaultName: "ashwin-aks-kv"
+      keyVaultName: "teknologi-aks-kv"
       signingKeyName: oci-artifact-signing-key
-      acrName: ashwinaks
+      acrName: teknologiaks
     secrets: inherit
 
   promote-dev:
@@ -26,7 +26,7 @@ jobs:
     uses: ./.github/workflows/aks-oci-promote.yaml
     with:
       environment: dev
-      acrName: ashwinaks
+      acrName: teknologiaks
     secrets: inherit
   
   promote-tst:
@@ -34,7 +34,7 @@ jobs:
     uses: ./.github/workflows/aks-oci-promote.yaml
     with:
       environment: tst
-      acrName: ashwinaks
+      acrName: teknologiaks
     secrets: inherit
   
   promote-prd:
@@ -42,6 +42,6 @@ jobs:
     uses: ./.github/workflows/aks-oci-promote.yaml
     with:
       environment: prd
-      acrName: ashwinaks
+      acrName: teknologiaks
     secrets: inherit
 

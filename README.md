@@ -2,7 +2,7 @@
 
 ## Overview
 
-For a detailed explanation of how this operator was built and how it works, check out my [############# blog post](https://teknologi.nl/posts/##########).
+For a detailed explanation of how this solution was built and how it works, check out my [Verify OCI Artifacts with the Flux extension in AKS blog post](https://teknologi.nl/posts/AksFluxOciArtifacts).
 
 ## GitHub Actions
 

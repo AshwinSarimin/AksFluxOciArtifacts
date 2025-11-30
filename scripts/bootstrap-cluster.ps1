@@ -1,8 +1,8 @@
-$resourceGroup = "ashwin-aks-rg"
-$aksName = "ashwin-aks"
-$acrName = "ashwinaks"
-$keyVaultName = "ashwin-aks-kv"
-$fluxIdentityName = "ashwin-aks-flux"
+$resourceGroup = "teknologi-aks-rg"
+$aksName = "teknologi-aks"
+$acrName = "teknologiaks"
+$keyVaultName = "teknologi-aks-kv"
+$fluxIdentityName = "teknologi-aks-flux"
 $environmentCode = "dev"
 $signingKeyName = "oci-artifact-signing-key"
 
