@@ -29,19 +29,19 @@ jobs:
       acrName: ashwinaks
     secrets: inherit
   
-  #promote-tst:
-  #  needs: push-sign-oci-artifacts
-  #  uses: ./.github/workflows/aks-oci-promote.yaml
-  #  with:
-  #    environment: tst
-  #    acrName: ashwinaks
-  #  secrets: inherit
+  promote-tst:
+    needs: push-sign-oci-artifacts
+    uses: ./.github/workflows/aks-oci-promote.yaml
+    with:
+      environment: tst
+      acrName: ashwinaks
+    secrets: inherit
   
-  #promote-prd:
-  #  needs: push-sign-oci-artifacts
-  #  uses: ./.github/workflows/aks-oci-promote.yaml
-  #  with:
-  #    environment: prd
-  #    acrName: ashwinaks
-  #  secrets: inherit
+  promote-prd:
+    needs: push-sign-oci-artifacts
+    uses: ./.github/workflows/aks-oci-promote.yaml
+    with:
+      environment: prd
+      acrName: ashwinaks
+    secrets: inherit
 
