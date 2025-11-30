@@ -22,14 +22,6 @@ Require-Command -Name git
 # Normalize folders
 $folders = $FoldersToSync -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
 
-$folders
-
-#if (-not $folders -or $folders.Count -eq 0) {
-#  throw "No folders specified to sync."
-#}
-
-#Write-Host "Preparing to build $($folders.Count) folder(s)."
-
 # Create destination folder if it doesn't exist
 if (-not (Test-Path -Path $DestinationFolder -PathType Container)) {
   Write-Host "Creating destination folder at '$DestinationFolder'."

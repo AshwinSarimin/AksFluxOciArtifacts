@@ -1,10 +1,8 @@
 # AksFluxOciArtifacts
 
+## Overview
 
-
-
-
-
+For a detailed explanation of how this operator was built and how it works, check out my [############# blog post](https://teknologi.nl/posts/##########).
 
 ## GitHub Actions
 
@@ -14,7 +12,7 @@ To be able to deploy the Azure resources with GitHub Action, an user-assigned ma
 - Azure CLI
 - GitHub CLI: https://github.com/cli/cli/blob/trunk/docs/install_linux.md
 
-```
+```bash
 (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) \
 	&& sudo mkdir -p -m 755 /etc/apt/keyrings \
         && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
@@ -30,28 +28,26 @@ To be able to deploy the Azure resources with GitHub Action, an user-assigned ma
 
 Create a managed identity, for example:
 ```bash
-az identity create --resource-group "ashwin-aks-rg" --name "ashwin-aks-deployment" -o json
+az identity create --resource-group "teknologi-aks-rg" --name "teknologi-aks-deployment" -o json
 ```
 
 Add the repository as federation to the managed identity:
 
 ```bash
 # Variables
-TENANT_ID="2a158a07-0057-4fd2-8303-84bf295283fe"
-SUBSCRIPTION_ID="f6b50b84-d224-4b8d-9dda-64eba46c602a"
-RESOURCE_GROUP_NAME="ashwin-aks-rg"
+TENANT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+SUBSCRIPTION_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+RESOURCE_GROUP_NAME="teknologi-aks-rg"
 LOCATION="westeurope"
-IDENTITY_NAME="ashwin-aks-deployment"
+IDENTITY_NAME="teknologi-aks-deployment"
 GH_USERNAME="AshwinSarimin"
 GH_REPO_NAME="AksFluxOciArtifacts"
 
 # Ensure you have Azure CLI installed and logged in
 az login --tenant "$TENANT_ID" --use-device-code
-
-# Login with ashwin.sarimin@teknologi.nl
 az account set --subscription "$SUBSCRIPTION_ID"
 
-# Create federated identity credentials
+# Create federated identity credentials for each environment in the GitHub repo
 az identity federated-credential create \
     --resource-group "$RESOURCE_GROUP_NAME" \
     --identity-name "$IDENTITY_NAME" \
@@ -119,5 +115,3 @@ gh secret set CLIENT_ID --body "$CLIENT_ID" --env "prd" --repo ${GH_USERNAME}/${
 
 gh secret set TENANT_ID --body "$TENANT_ID" --env "prd" --repo ${GH_USERNAME}/${GH_REPO_NAME}
 ```
-
-Needs Owner RBAC on Resource Group & KeyVault Administrator RBAC on KeyVault

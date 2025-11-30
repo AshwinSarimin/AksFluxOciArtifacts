@@ -159,10 +159,6 @@ Write-Host "  CosignKeyId: $keyId"
 Write-Host "  CosignKeyVault: $KeyVaultName"
 Write-Host "  CosignKeyName: $keyName"
 
-#Write-Host "##vso[task.setvariable variable=CosignKeyId;isOutput=true]$keyId"
-#Write-Host "##vso[task.setvariable variable=CosignKeyVault;isOutput=true]$KeyVaultName"
-#Write-Host "##vso[task.setvariable variable=CosignKeyName;isOutput=true]$keyName"
-
 Write-Host "`n$CHECK Key generation completed successfully!" -ForegroundColor Green
 Write-Host "`nUsage in scripts:" -ForegroundColor Cyan
 Write-Host "  cosign sign --key `"$keyId`" <image-reference>" -ForegroundColor White

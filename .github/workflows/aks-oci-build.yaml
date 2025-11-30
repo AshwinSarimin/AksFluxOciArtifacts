@@ -2,20 +2,10 @@ name: Build OCI Artifacts
 
 on:
   workflow_call:
-    #inputs:
-    #  githubAppID:
-    #    required: true
-    #    type: string
-    #outputs:
-    #  modules:
-    #    description: "The directory of the added or updated modules. Empty if no module was changed."
-    #    value: ${{ jobs.main.outputs.modules }}
 
 jobs:
   build-artifacts:
     runs-on: ubuntu-latest
-    #outputs:
-    #  modules: ${{ steps.get-changed-modules.outputs.modules }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
